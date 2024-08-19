@@ -1,23 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OKX</title>
+</head>
 <body>
-  <h1>Origin Spoof</h1>
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <button id="connectButton">Connect Wallet</button>
+    <button id="signButton" disabled>Sign Message</button>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.4/dist/web3.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const connectButton = document.getElementById('connectButton');
+            const signButton = document.getElementById('signButton');
+            let web3;
 
-  <script>
-    var web3 = new Web3(window.ethereum);
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
 
-    async function getAddress() {
-      return await web3.eth.requestAccounts();
-      console.log(address);
-    }
-    var addresses;
-    getAddress().then((value) => {
-      addresses = value;
-      web3.eth.personal.sign("Hi Metamask!", addresses[0])
-    });
+                connectButton.addEventListener('click', async () => {
+                    try {
+                        // Request wallet connection
+                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        console.log('Connected account:', accounts[0]);
+                        connectButton.disabled = true;
+                        signButton.disabled = false;
+                    } catch (error) {
+                        console.error('User rejected the request:', error);
+                    }
+                });
 
-  </script>
-  <div id="poc"></div>
+                signButton.addEventListener('click', async () => {
+                    try {
+                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        const account = accounts[0];
+                        const message = 'helloword';
 
-
-
+                        // Sign the message using MetaMask
+                        const messageHex = web3.utils.utf8ToHex(message);
+                        const signature = await window.ethereum.request({
+                            method: 'personal_sign',
+                            params: [messageHex, account]
+                        });
+                        console.log('Message signed with MetaMask:', signature);
+                    } catch (error) {
+                        console.error('Error during signing:', error.message, error.stack);
+                    }
+                });
+            } else {
+                console.error('Ethereum browser extension not detected.');
+            }
+        });
+    </script>
 </body>
+</html>
